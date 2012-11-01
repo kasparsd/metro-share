@@ -1,0 +1,21 @@
+.metroshare-tabs ul { display:block; margin:0; padding:0; float:left; width:100%; clear:both; position:relative; }
+.metroshare-tabs li { display:block; list-style:none; float:left; position:relative; }
+.metroshare-tabs li label { background:#eee; padding:0.5em 1em; margin-right:0.5em; border:1px solid #ccc; border-radius:4px; }
+.metroshare-wrap .metroshare-destinations { width:auto; }
+.metroshare-destination th { position:relative; padding-left:25px; }
+.metroshare-destination td { max-width:500px; }
+.metroshare-destination th:before { position:absolute; content:''; background:url('icons.png') no-repeat; width:20px; height:21px; left:0; margin-top:-3px; }
+#destination-twitter th:before { background-position:0 -48px; }
+#destination-facebook th:before { background-position:0 -24px; }
+#destination-google-plus th:before { background-position:0 -72px; }
+#destination-linkedin th:before { background-position:0 0; }
+#destination-email th:before { background-position:0 -96px; }
+
+.metroshare-destinations td .input-wrap { margin:0 0 1em 0; min-width:400px; }
+.metroshare-destinations .help-text { font-style:italic; display:block; color:#666; }
+.metroshare-destinations textarea { display:block; width:100%; }
+.metroshare-destinations .input-text { display:block; width:100%; }
+.metroshare-destinations .label { display:block; }
+.metroshare-destination { border-top:1px solid #ddd; }
+.metroshare-destinations .destination-desc { margin-top:0; }
+.metroshare-destinations .field-help { line-height:1.2; display:block; margin:0.3em 0 0.5em 0; font-size:0.9em; color:#666; font-style: italic; }	
