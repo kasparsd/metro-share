@@ -18,13 +18,14 @@ class metro_share {
 
 
 	function metro_share() {
+		// Admin
 		add_action( 'init', array( $this, 'load_settings' ) );
 		add_action( 'admin_menu', array( $this, 'register_admin_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
+		// Frontend
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 		add_action( 'metroshare', array( $this, 'show_sharing' ) );
-
 		add_action( 'wp_footer', array( $this, 'maybe_close_facebook_redirect' ) );
 	}
 
@@ -42,17 +43,14 @@ class metro_share {
 		if ( strstr( $page, 'metro-share' ) == -1 )
 			return;
 
-		wp_enqueue_script( 'metroshare-admin-js', plugins_url( '/metroshare-admin.js', __FILE__ ), array( 'jquery', 'jquery-ui-sortable' ) );
-		wp_enqueue_style( 'metroshare-admin-css', plugins_url( 'metroshare-admin.css', __FILE__ ) );
+		wp_enqueue_script( 'metroshare-admin-js', plugins_url( '/assets/metroshare-admin.js', __FILE__ ), array( 'jquery', 'jquery-ui-sortable' ) );
+		wp_enqueue_style( 'metroshare-admin-css', plugins_url( '/assets/metroshare-admin.css', __FILE__ ) );
 	}
 
 	function enqueue_frontend_scripts() {
-		if ( ! is_singular() )
-			return;
-
-		wp_enqueue_style( 'metroshare-css', plugins_url( '/metroshare.css', __FILE__ ) );
-		wp_enqueue_script( 'metroshare', plugins_url( '/metroshare.js', __FILE__ ), array( 'jquery' ), null, true );
-		wp_localize_script( 'metroshare', 'metroshare', array( 'true' => true ) );
+		wp_enqueue_style( 'metroshare-css', plugins_url( '/assets/metroshare.css', __FILE__ ) );
+		wp_enqueue_script( 'metroshare', plugins_url( '/assets/metroshare.js', __FILE__ ), array( 'jquery' ), null, true );
+		// wp_localize_script( 'metroshare', 'metroshare', array( 'true' => true ) );
 	}
 
 	function register_admin_settings() {
@@ -341,7 +339,7 @@ class metro_share {
 					);
 			}
 
-		return apply_filters( 'metro-share-settings-fields', $fields, $n );
+		return apply_filters( 'metroshare-settings-fields', $fields, $n );
 	}
 
 }
