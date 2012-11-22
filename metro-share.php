@@ -42,8 +42,13 @@ class metro_share {
 	var $settings = array();
 	var $destinations = array();
 
-
-	function __construct() {
+	/*
+	 * Class constructor
+	 *
+	 * @since 0.4
+	 * @author Ryan Hellyer <ryan@metronet.no>
+	 */
+	public function __construct() {
 
 		// Admin
 		add_action( 'init', array( $this, 'load_settings' ) );
@@ -67,7 +72,13 @@ class metro_share {
 
 	}
 
-	function enqueue_admin_scripts( $page ) {
+	/*
+	 * Load Javascript and CSS into admin
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function enqueue_admin_scripts( $page ) {
 		if ( strstr( $page, 'metro-share' ) == -1 )
 			return;
 
@@ -75,17 +86,83 @@ class metro_share {
 		wp_enqueue_style( 'metroshare-admin-css', plugins_url( '/assets/metroshare-admin.css', __FILE__ ) );
 	}
 
-	function enqueue_frontend_scripts() {
+	/*
+	 * Load Javascript and CSS into frontend of site
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function enqueue_frontend_scripts() {
 		wp_enqueue_style( 'metroshare-css', plugins_url( '/assets/metroshare.css', __FILE__ ) );
 		wp_enqueue_script( 'metroshare', plugins_url( '/assets/metroshare.js', __FILE__ ), array( 'jquery' ), null, true );
 		// wp_localize_script( 'metroshare', 'metroshare', array( 'true' => true ) );
 	}
 
-	function register_admin_settings() {
-		register_setting( 'metroshare_settings', 'metroshare_settings' );
+	/*
+	 * Register admin page settings
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function register_admin_settings() {
+		register_setting(
+			'metroshare_settings',
+			'metroshare_settings',
+			array( $this, 'validate' )
+		);
 		add_submenu_page( 'options-general.php', 'Metroshare Settings', 'Metroshare', 'administrator', __FILE__, array( $this, 'metroshare_settings_display' ) );
 	}
+	
+	/*
+	 * Sanitising each chunk of data submitted from the admin page
+	 *
+	 * @since 0.5
+	 * @author Ryan Hellyer <ryan@metronet.no>
+	 */
+	public function sanitise_chunk( $input ) {
+		$output = array();
+		if ( ! empty( $input['enabled'] ) )
+			$output['enabled']  = sanitize_title( $input['enabled'] );
+		if ( isset( $input['message'] ) )
+			$output['message']  = wp_kses( $input['message'], '', '' );
+		if ( isset( $input['username'] ) )
+			$output['username'] = sanitize_user( $input['username'] );
+		if ( isset( $input['app_id'] ) ) {
+			$output['app_id'] = abs( $input['app_id'] );
+			if ( 0 == $output['app_id'] )
+				$output['app_id']  = '';
+		}
+		return $output;
+	}
 
+	/*
+	 * Validation/sanitisation of data inputted from admin page
+	 *
+	 * @since 0.5
+	 * @author Ryan Hellyer <ryan@metronet.no>
+	 */
+	public function validate( $input ) {
+		$output = array();
+		$output['prefix'] = wp_kses( $input['prefix'], '', '' );
+		$destinations = $input['destinations'];
+
+		$output['destinations'] = array(
+			'twitter'     => $this->sanitise_chunk( $destinations['twitter'] ),
+			'email'       => $this->sanitise_chunk( $destinations['email'] ),
+			'google-plus' => $this->sanitise_chunk( $destinations['google-plus'] ),
+			'facebook'    => $this->sanitise_chunk( $destinations['facebook'] ),
+			'linkedin'    => $this->sanitise_chunk( $destinations['linkedin'] ),
+		);
+
+		return $output;
+	}
+
+	/*
+	 * Load settings for admin pages
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
 	function load_settings() {
 		// Load user settings
 		$this->settings = get_option( 'metroshare_settings' );
@@ -284,6 +361,12 @@ class metro_share {
 
 	}
 
+	/*
+	 * Displays the admin page settings content
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
 	function metroshare_settings_display() {
 		$network_settings = array();
 		$enabled_settings = array(); 
