@@ -1,20 +1,57 @@
-.metroshare { display:none; float:left; width:100%; clear:both; margin-top:2em; }
-.metroshare .tabs { display:block; float:left; list-style:none; margin:0!important; padding:0!important; line-height:1; }
-.metroshare .tabs li { display:block; margin:0!important; padding:0!important; float:left; }
-.metroshare .tabs a { float:left; display:block; padding:0.9em 0.7em 0.5em 0.7em; margin:0 0.2em; }
-.metroshare .destination-tab { display:none; }
-.metroshare .input-fields { margin-right:6em; }
-.metroshare .share-submit { float:right; margin-left:-100em; position:absolute; top:30%; right:1em; }
-.metroshare .ui-tabs-hide { display:none; }
-.metroshare form { margin:0; padding:0; }
-.metroshare .destination-tab textarea { font:inherit; font-size:1.2em; color:#666; padding:0.2em 0.5em; border:1px solid #ccc; border-radius:4px; display:block; width:98%; height:3em; }
-.metroshare .share-prefix { font-size:1em; float:left; width:auto; margin:5px 1em 0 0; padding:0.5em 0; line-height:1; }
-.metroshare .destination-tab input[type="submit"] { width:4em; text-align: center; border:none; background:#4262CD; color:#fff; font:inherit; padding:0.5em; line-height:1; border-radius:4px; }
-.metroshare .destination-tab input[type="submit"]:hover { background:#333; }
-.metroshare .tabs .icon { float:left; margin-right:5px; margin-top:-5px; display:block; width:20px; height:21px; background:url('icons.png') no-repeat top right; }
-.metroshare .metroshare-twitter .icon { background-position: 100% -48px; }
-.metroshare .metroshare-facebook .icon { background-position: 100% -24px; }
-.metroshare .metroshare-google-plus .icon { background-position: 100% -72px; }
-.metroshare .metroshare-linkedin .icon { background-position: 100% 0; }
-.metroshare .metroshare-email .icon { background-position: 100% -96px; }
-.metroshare .tabs a:hover .icon, .metroshare .tabs .ui-tabs-selected .icon { background-position-x: 0; }
+.metro-tabs {
+	float: left;
+}
+.metro-tabs {
+	float: left;
+	list-style: none;
+	line-height: 1;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+.metro-tabs li {
+	float: left;
+	width: 16px;
+	height: 16px;
+	margin: 0 0.6em 0 0 !important;
+	padding: 0 !important;
+}
+.metro-tabs a {
+	float: left;
+	text-indent: -999em;
+}
+.metro-tabs .icon {
+	float: left;
+	width: 16px;
+	height: 16px;
+	background: url(share-icons.png) no-repeat;
+}
+.metroshare-facebook .icon {
+	background-position: 0 0;
+}
+.metroshare-facebook:hover .icon {
+	background-position: 0 -16px;
+}
+.metroshare-twitter .icon {
+	background-position: -16px  0;
+}
+.metroshare-twitter:hover .icon {
+	background-position: -16px  -16px;
+}
+.metroshare-email .icon {
+	background-position: -32px 0;
+}
+.metroshare-email:hover .icon {
+	background-position: -32px -16px;
+}
+.metroshare-google-plus .icon {
+	background-position: -48px 0;
+}
+.metroshare-google-plus:hover .icon {
+	background-position: -48px -16px;
+}
+.metroshare-linkedin .icon {
+	background-position: -64px 0;
+}
+.metroshare-linkedin:hover .icon {
+	background-position: -64px -16px;
+}

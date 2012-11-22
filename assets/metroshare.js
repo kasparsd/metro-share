@@ -1,7 +1,7 @@
 jQuery(window).ready(function($) {
 	$('.metroshare').fadeIn();
 
-	$('.metroshare .tabs a').click(function() {
+	$('.metroshare .metro-tabs a').click(function() {
 		$( $(this).attr('href') ).submit();
 		return false;
 	})
