@@ -142,17 +142,17 @@ class metro_share {
 	 * @author Ryan Hellyer <ryan@metronet.no>
 	 */
 	public function validate( $input ) {
+
 		$output = array();
-		$output['prefix'] = wp_kses( $input['prefix'], '', '' );
+		if ( isset( $input['prefix'] ) )
+			$output['prefix'] = wp_kses( $input['prefix'], '', '' );
+		if ( isset( $input['allposts'] ) )
+			$output['allposts'] = (bool) $input['allposts'];
 		$destinations = $input['destinations'];
 
-		$output['destinations'] = array(
-			'twitter'     => $this->sanitise_chunk( $destinations['twitter'] ),
-			'email'       => $this->sanitise_chunk( $destinations['email'] ),
-			'google-plus' => $this->sanitise_chunk( $destinations['google-plus'] ),
-			'facebook'    => $this->sanitise_chunk( $destinations['facebook'] ),
-			'linkedin'    => $this->sanitise_chunk( $destinations['linkedin'] ),
-		);
+		foreach( $destinations as $destination => $value ) {
+			$output['destinations'][$destination] = $this->sanitise_chunk( $destinations[$destination] );
+		}
 
 		return $output;
 	}
@@ -163,7 +163,7 @@ class metro_share {
 	 * @since 0.4
 	 * @author Kaspars Dambis <kaspars@metronet.no>
 	 */
-	function load_settings() {
+	public function load_settings() {
 		// Load user settings
 		$this->settings = get_option( 'metroshare_settings' );
 
@@ -267,11 +267,12 @@ class metro_share {
 		global $post;
 
 		// If not the current post, then move along ...
-		if ( is_singular() && $post->ID == get_queried_object_id() ) {
+		$this->settings = get_option( 'metroshare_settings' );
+		if ( is_singular() && $post->ID == get_queried_object_id() || $this->settings['allposts'] == true ) {
 			$icons = $this->get_sharing_icons();
 			$content .= $icons;
 		}
-		
+
 		// Finally, return the content
 		return $content;
 	}
@@ -367,7 +368,7 @@ class metro_share {
 	 * @since 0.4
 	 * @author Kaspars Dambis <kaspars@metronet.no>
 	 */
-	function metroshare_settings_display() {
+	public function metroshare_settings_display() {
 		$network_settings = array();
 		$enabled_settings = array(); 
 
@@ -408,7 +409,15 @@ class metro_share {
 						<tr class="metroshare-prefix">
 							<th>%s</th>
 							<td>
-								<input class="regular-text" type="text" name="metroshare_settings[prefix]" value="%s" />
+								<input class="regular-text" type="text" name="metroshare_settings[allposts]" value="%s" />
+							</td>
+						</tr>
+						<tr class="submit">
+							<th>%s</th>
+							<td>
+								<p>
+									<input type="checkbox" name="metroshare_settings[allposts]" value="1" %s />
+								</p>
 							</td>
 						</tr>
 						<tr class="metroshare-tabs">
@@ -440,6 +449,8 @@ class metro_share {
 				__( 'Metroshare Settings', 'metroshare' ),
 				__( 'Invitation Text', 'metroshare' ),
 				esc_attr( $this->settings['prefix'] ),
+				'Display in <strong>all</strong> post areas?',
+				checked( $this->settings['allposts'], true, false ),
 				__( 'Sharing Destinations', 'metroshare' ),
 				__( 'Select which sharing destinations you want to enable and use drag and drop to change their order:', 'metroshare' ),
 				implode( '', $enabled_settings ),
@@ -452,7 +463,7 @@ class metro_share {
 		echo '</form>';
 	}
 
-	function network_settings_fields( $n ) {
+	public function network_settings_fields( $n ) {
 		$fields = array();
 
 		$inputs = array(
