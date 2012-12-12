@@ -295,10 +295,8 @@ class Metro_Share {
 	 *
 	 * @since 0.5
 	 * @author Ryan Hellyer <ryan@metronet.no>
-	 * @param string $content The post content
-	 * @global int   $post    The primary post object
 	 */
-	public function show_sharing_icons( $content = '' ) {
+	public function show_sharing_icons() {
 		echo $this->get_sharing_icons();
 	}
 
@@ -333,8 +331,10 @@ class Metro_Share {
 
 			// Append hidden fields to the form
 			if ( isset( $this->destinations[ $d ]['hidden'] ) )
-				foreach ( $this->destinations[ $d ]['hidden'] as $field_name => $field_value )
-					$hidden_fields[] = sprintf( '<input type="hidden" name="%s" value="%s" />', $field_name, strtr( $field_value, $replace ) );
+				foreach ( $this->destinations[ $d ]['hidden'] as $field_name => $field_value ) {
+					if ( ! empty( $field_value ) )
+						$hidden_fields[] = sprintf( '<input type="hidden" name="%s" value="%s" />', $field_name, strtr( $field_value, $replace ) );
+				}
 
 			// If sharing destination is enabled, then display list item and link
 			if ( isset( $destination['enabled'] ) )
@@ -481,6 +481,8 @@ class Metro_Share {
 	 *
 	 * @since 0.4
 	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 * @todo Document @param here
+	 * @return array
 	 */
 	public function network_settings_fields( $n ) {
 		$fields = array();
