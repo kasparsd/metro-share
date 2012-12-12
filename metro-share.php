@@ -3,7 +3,7 @@
 Plugin Name: Metro Share
 Plugin URI: http://metronet.no
 Description: Super fast and super customizable social sharing
-Version: 0.4
+Version: 0.5
 Author: Metronet AS
 Author URI: http://metronet.no
 Text Domain: metroshare
@@ -35,9 +35,16 @@ add_filter( 'http_request_args', 'metroshare_hidden_plugin', 5, 2 );
 
 
 
-new metro_share;
+new Metro_Share;
 
-class metro_share {
+/**
+ * Metro Share class
+ * 
+ * @copyright Copyright (c), Metronet
+ * @author Kaspars Dambis <kaspars@metronet.no>
+ * @since 0.4
+ */
+class Metro_Share {
 
 	var $settings = array();
 	var $destinations = array();
@@ -51,18 +58,24 @@ class metro_share {
 	public function __construct() {
 
 		// Admin
-		add_action( 'init', array( $this, 'load_settings' ) );
-		add_action( 'admin_menu', array( $this, 'register_admin_settings' ) );
+		add_action( 'init',                  array( $this, 'load_settings' ) );
+		add_action( 'admin_menu',            array( $this, 'register_admin_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
 		// Frontend
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
-		add_action( 'metroshare', array( $this, 'show_sharing_icons' ) );
-		add_action( 'wp_footer', array( $this, 'maybe_close_facebook_redirect' ) );
-		add_action( 'the_content', array( $this, 'show_the_content' ) );
+		add_action( 'wp_enqueue_scripts',    array( $this, 'enqueue_frontend_scripts' ) );
+		add_action( 'metroshare',            array( $this, 'show_sharing_icons' ) );
+		add_action( 'wp_footer',             array( $this, 'maybe_close_facebook_redirect' ) );
+		add_action( 'the_content',           array( $this, 'show_the_content' ) );
 	}
 
-	function maybe_close_facebook_redirect() {
+	/*
+	 * Close Facebook ... 
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function maybe_close_facebook_redirect() {
 
 		if ( ! isset( $_GET['metroshare'] ) )
 			return;
@@ -463,6 +476,12 @@ class metro_share {
 		echo '</form>';
 	}
 
+	/*
+	 * Adding fields to admin page
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
 	public function network_settings_fields( $n ) {
 		$fields = array();
 
