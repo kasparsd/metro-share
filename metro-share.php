@@ -9,33 +9,8 @@ Author URI: http://metronet.no
 Text Domain: metroshare
 */
 
-/*
- * Temporary function added until this plugin is set to handle auto-updates
- * This prevents malicious code from being pushed to sites via the
- * WordPress.org plugin update API. This should be moved when auto-updating is
- * implemented in the plugin, or when it is uploaded to WordPress.org.
- *
- * Based on code from Mark Jaquith (http://markjaquith.wordpress.com/2009/12/14/excluding-your-plugin-or-theme-from-update-checks/)
- *
- * @author Ryan Hellyer <ryan@metronet.no>
- * @since 0.5
- * @param array $r    http request header
- * @param string $url The update URL being checked
- */
-function metroshare_hidden_plugin( $r, $url ) {
-	if ( 0 !== strpos( $url, 'http://api.wordpress.org/plugins/update-check' ) )
-		return $r; // Not a plugin update request. Bail immediately.
-	$plugins = unserialize( $r['body']['plugins'] );
-	unset( $plugins->plugins[ plugin_basename( __FILE__ ) ] );
-	unset( $plugins->active[ array_search( plugin_basename( __FILE__ ), $plugins->active ) ] );
-	$r['body']['plugins'] = serialize( $plugins );
-	return $r;
-}
-add_filter( 'http_request_args', 'metroshare_hidden_plugin', 5, 2 );
 
-
-
-new Metro_Share;
+$metro_share = new Metro_Share;
 
 /**
  * Metro Share class
@@ -526,4 +501,3 @@ class Metro_Share {
 	}
 
 }
-
