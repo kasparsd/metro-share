@@ -295,6 +295,7 @@ class Metro_Share {
 				'{{link}}'       => get_permalink(),
 				'{{shortlink}}'  => wp_get_shortlink(),
 			);
+			$replace = apply_filters( 'metroshare_tag', $replace );
 
 			// Add custom destination settings fields to the replace variables
 			if ( isset( $this->destinations[ $d ]['fields'] ) )
