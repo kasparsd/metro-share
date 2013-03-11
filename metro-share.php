@@ -289,12 +289,21 @@ class Metro_Share {
 		// Process each potential sharing destination
 		foreach ( $this->settings['destinations'] as $d => $destination ) {
 
-			$replace = array(
-				'{{title}}'      => get_the_title(),
-				'{{post_title}}' => get_the_title(),
-				'{{link}}'       => get_permalink(),
-				'{{shortlink}}'  => wp_get_shortlink(),
-			);
+			if ( is_404() ) {
+				$replace = array(
+					'{{title}}'      => get_the_title(),
+					'{{post_title}}' => get_the_title(),
+					'{{link}}'       => get_permalink(),
+					'{{shortlink}}'  => wp_get_shortlink(),
+				);
+			} else {
+				$replace = array(
+					'{{title}}'      => get_bloginfo( 'name' ),
+					'{{post_title}}' => get_bloginfo( 'description' ),
+					'{{link}}'       => home_url(),
+					'{{shortlink}}'  => home_url(),
+				);
+			}
 			$replace = apply_filters( 'metroshare_tag', $replace );
 
 			// Add custom destination settings fields to the replace variables
