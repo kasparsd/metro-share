@@ -13,6 +13,7 @@
 	padding: 0 !important;
 }
 .metro-tabs li {
+	list-style: none;
 	float: left;
 	width: 16px;
 	height: 16px;

@@ -31,6 +31,35 @@ class Metro_Share {
 	 * @author Ryan Hellyer <ryan@metronet.no>
 	 */
 	public function __construct() {
+		//delete_option( 'metroshare_settings' );
+		$settings = array(
+			'allposts' => 0,
+			'prefix'   => '',
+			'destinations' => array(
+				'twitter' => array(
+					'enabled'  => 'twitter',
+					'message'  => '',
+					'username' => '',
+				),
+				'facebook' => array(
+					'app_id'  => '',
+				),
+				'email' => array(
+					'enabled' => 'email',
+					'message' => ''
+				),
+				'google-plus' => array(
+					'enabled' => 'google-plus',
+				),
+				'linkedin' => array(
+					'enabled' => 'linkedin',
+				),
+			),
+		);
+		add_option( 'metroshare_settings', $settings );
+
+		// Grab settings
+		$this->settings = get_option( 'metroshare_settings' );
 
 		// Admin
 		add_action( 'init',                  array( $this, 'load_settings' ) );
@@ -98,7 +127,7 @@ class Metro_Share {
 			'metroshare_settings',
 			array( $this, 'validate' )
 		);
-		add_submenu_page( 'options-general.php', 'Metroshare Settings', 'Metroshare', 'administrator', __FILE__, array( $this, 'metroshare_settings_display' ) );
+		add_submenu_page( 'options-general.php', __( 'Sharing Icon Settings', 'metroshare' ), __( 'Sharing Icons', 'metroshare' ), 'administrator', __FILE__, array( $this, 'settings_display' ) );
 	}
 	
 	/*
@@ -116,9 +145,11 @@ class Metro_Share {
 		if ( isset( $input['username'] ) )
 			$output['username'] = sanitize_user( $input['username'] );
 		if ( isset( $input['app_id'] ) ) {
-			$output['app_id'] = abs( $input['app_id'] );
-			if ( 0 == $output['app_id'] )
-				$output['app_id']  = '';
+			if ( is_numeric( $input['app_id'] ) ) {
+				$output['app_id'] = $input['app_id'];
+			} else {
+				$output['app_id'] = '';
+			}
 		}
 		return $output;
 	}
@@ -136,6 +167,8 @@ class Metro_Share {
 			$output['prefix'] = wp_kses( $input['prefix'], '', '' );
 		if ( isset( $input['allposts'] ) )
 			$output['allposts'] = (bool) $input['allposts'];
+		else
+			$output['allposts'] = false;
 		$destinations = $input['destinations'];
 
 		foreach( $destinations as $destination => $value ) {
@@ -152,8 +185,6 @@ class Metro_Share {
 	 * @author Kaspars Dambis <kaspars@metronet.no>
 	 */
 	public function load_settings() {
-		// Load user settings
-		$this->settings = get_option( 'metroshare_settings' );
 
 		$this->destinations['twitter'] = array(
 				'title' => 'Twitter',
@@ -162,7 +193,7 @@ class Metro_Share {
 					'message' => array( 
 						'type' => 'textarea',
 						'label' => __( 'Default message:', 'metroshare' ),
-						'help' => __( 'You can use the following tags: <code>{{title}}</code>, <code>{{link}}</code>.', 'metroshare' )
+						'help' => __( 'You can use the following tags: <code>{{title}}</code>, <code>{{link}}</code>, <code>{{post_title}}</code> and <code>{{shortlink}}</code>.', 'metroshare' )
 					),
 					'username' => array( 
 						'type' => 'text',
@@ -247,15 +278,13 @@ class Metro_Share {
 	 *
 	 * @since 0.5
 	 * @author Ryan Hellyer <ryan@metronet.no>
-	 * @param string $content The post content
-	 * @global int   $post    The primary post object
+	 * @param string   $content  The post content
+	 * @global object  $post     The primary post object
 	 * @return string
 	 */
 	public function show_the_content( $content = '' ) {
 		global $post;
 
-		// If not the current post, then move along ...
-		$this->settings = get_option( 'metroshare_settings' );
 		if ( is_singular() && $post->ID == get_queried_object_id() || $this->settings['allposts'] == true ) {
 			$icons = $this->get_sharing_icons();
 			$content .= $icons;
@@ -291,17 +320,17 @@ class Metro_Share {
 
 			if ( is_404() ) {
 				$replace = array(
-					'{{title}}'      => get_the_title(),
-					'{{post_title}}' => get_the_title(),
-					'{{link}}'       => get_permalink(),
-					'{{shortlink}}'  => wp_get_shortlink(),
-				);
-			} else {
-				$replace = array(
 					'{{title}}'      => get_bloginfo( 'name' ),
 					'{{post_title}}' => get_bloginfo( 'description' ),
 					'{{link}}'       => home_url(),
 					'{{shortlink}}'  => home_url(),
+				);
+			} else {
+				$replace = array(
+					'{{title}}'      => get_the_title(),
+					'{{post_title}}' => get_the_title(),
+					'{{link}}'       => get_permalink(),
+					'{{shortlink}}'  => wp_get_shortlink(),
 				);
 			}
 			$replace = apply_filters( 'metroshare_tag', $replace );
@@ -366,11 +395,14 @@ class Metro_Share {
 	 * @since 0.4
 	 * @author Kaspars Dambis <kaspars@metronet.no>
 	 */
-	public function metroshare_settings_display() {
+	public function settings_display() {
 		$network_settings = array();
 		$enabled_settings = array(); 
 
 		foreach ( $this->destinations as $n => $network ) {
+			if ( ! isset( $this->settings['destinations'][ $n ]['enabled'] ) ) {
+				$this->settings['destinations'][ $n ]['enabled'] = false;
+			}
 			$enabled_settings[ $n ] = sprintf( 
 					'<li>
 						<label>
@@ -398,16 +430,24 @@ class Metro_Share {
 
 		echo '<form action="options.php" method="post">';
 		settings_fields( 'metroshare_settings' );
+		echo '
+		<style type="text/css">
+		#icon-metronet {
+			background:url(' . plugins_url( '/assets/metronet-icon.png', __FILE__ ) . ') no-repeat;
+		}
+		</style>
+		<div class="wrap metroshare-wrap">';
+		screen_icon( 'metronet' );
 
 		printf( 
-				'<div class="wrap metroshare-wrap">
+				'
 					<h2>%s</h2>
 					
 					<table class="form-table metroshare-global">
 						<tr class="metroshare-prefix">
 							<th>%s</th>
 							<td>
-								<input class="regular-text" type="text" name="metroshare_settings[allposts]" value="%s" />
+								<input class="regular-text" type="text" name="metroshare_settings[prefix]" value="%s" />
 							</td>
 						</tr>
 						<tr class="submit">
@@ -444,7 +484,7 @@ class Metro_Share {
 						</tr>
 					</table>
 				</div>',
-				__( 'Metroshare Settings', 'metroshare' ),
+				__( 'Sharing Icon Settings', 'metroshare' ),
 				__( 'Invitation Text', 'metroshare' ),
 				esc_attr( $this->settings['prefix'] ),
 				'Display in <strong>all</strong> post areas?',

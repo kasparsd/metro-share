@@ -5,7 +5,7 @@ Tags: share, icons, metronet
 Requires at least: 3.5
 Stable tag: 0.5
 
-Super fast and super customizable social sharing. 
+Super fast and super customizable social sharing.
 
 == Description ==
 
@@ -51,5 +51,5 @@ The plugin is provided with CSS by default, but you can unhook this and add your
 
 == Credits ==
 
-* <a href="http://www.dss.dep.no/">DSS</a> - Norwegian Government Administration Services<br />
 * <a href="http://metronet.no/">Metronet</a> - Norwegian WordPress developers<br />
+* <a href="http://www.dss.dep.no/">DSS</a> - Norwegian Government Administration Services<br />
