@@ -1,9 +1,9 @@
 === Metro Share ===
-Contributors: ryanhellyer, kasparsd, metronet
+Contributors: kasparsd, ryanhellyer, metronet
 Donate link: http://konstruktors.com/
-Tags: share, icons, metronet
+Tags: share, icons, metronet, sharing
 Requires at least: 3.5
-Stable tag: 0.5
+Stable tag: 0.5.2
 
 Super fast and super customizable social sharing.
 
@@ -13,7 +13,7 @@ Super fast and super customizable social sharing
 
 == Installation ==
 
-Simply install, activate and visit the "Metro Share" settings page.
+Simply install, activate and visit the "Sharing icons" settings page.
 
 By default, the plugin displays the sharing icons via the_content(), however
 you may wish to display it elsewhere. If this is the case, please install
@@ -34,6 +34,9 @@ The plugin is provided with CSS by default, but you can unhook this and add your
 * A. This plugin is intended for use by developers. The plugin is intended to be as extensible. Most changes you might like to make can be achieved via a few lines in a short custom plugin (or in your theme).
 
 == Changelog ==
+
+= 0.5.2 (4/3/2013) =
+* Final touches ready for public release
 
 = 0.5.1 (13/1/2013) =
 * Documentation update

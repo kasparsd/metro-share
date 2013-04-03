@@ -3,7 +3,7 @@
 Plugin Name: Metro Share
 Plugin URI: http://metronet.no
 Description: Super fast and super customizable social sharing
-Version: 0.5
+Version: 0.5.2
 Author: Metronet AS
 Author URI: http://metronet.no
 Text Domain: metroshare
