@@ -3,33 +3,83 @@
 Plugin Name: Metro Share
 Plugin URI: http://metronet.no
 Description: Super fast and super customizable social sharing
-Version: 0.4
+Version: 0.5.2
 Author: Metronet AS
 Author URI: http://metronet.no
 Text Domain: metroshare
 */
 
-new metro_share;
 
-class metro_share {
+$metro_share = new Metro_Share;
+
+/**
+ * Metro Share class
+ * 
+ * @copyright Copyright (c), Metronet
+ * @author Kaspars Dambis <kaspars@metronet.no>
+ * @since 0.4
+ */
+class Metro_Share {
 
 	var $settings = array();
 	var $destinations = array();
 
+	/*
+	 * Class constructor
+	 *
+	 * @since 0.4
+	 * @author Ryan Hellyer <ryan@metronet.no>
+	 */
+	public function __construct() {
+		//delete_option( 'metroshare_settings' );
+		$settings = array(
+			'allposts' => 0,
+			'prefix'   => '',
+			'destinations' => array(
+				'twitter' => array(
+					'enabled'  => 'twitter',
+					'message'  => '',
+					'username' => '',
+				),
+				'facebook' => array(
+					'app_id'  => '',
+				),
+				'email' => array(
+					'enabled' => 'email',
+					'message' => ''
+				),
+				'google-plus' => array(
+					'enabled' => 'google-plus',
+				),
+				'linkedin' => array(
+					'enabled' => 'linkedin',
+				),
+			),
+		);
+		add_option( 'metroshare_settings', $settings );
 
-	function metro_share() {
+		// Grab settings
+		$this->settings = get_option( 'metroshare_settings' );
+
 		// Admin
-		add_action( 'init', array( $this, 'load_settings' ) );
-		add_action( 'admin_menu', array( $this, 'register_admin_settings' ) );
+		add_action( 'init',                  array( $this, 'load_settings' ) );
+		add_action( 'admin_menu',            array( $this, 'register_admin_settings' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 
 		// Frontend
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
-		add_action( 'metroshare', array( $this, 'show_sharing' ) );
-		add_action( 'wp_footer', array( $this, 'maybe_close_facebook_redirect' ) );
+		add_action( 'wp_enqueue_scripts',    array( $this, 'enqueue_frontend_scripts' ) );
+		add_action( 'metroshare',            array( $this, 'show_sharing_icons' ) );
+		add_action( 'wp_footer',             array( $this, 'maybe_close_facebook_redirect' ) );
+		add_action( 'the_content',           array( $this, 'show_the_content' ) );
 	}
 
-	function maybe_close_facebook_redirect() {
+	/*
+	 * Close Facebook ... 
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function maybe_close_facebook_redirect() {
 
 		if ( ! isset( $_GET['metroshare'] ) )
 			return;
@@ -39,7 +89,13 @@ class metro_share {
 
 	}
 
-	function enqueue_admin_scripts( $page ) {
+	/*
+	 * Load Javascript and CSS into admin
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function enqueue_admin_scripts( $page ) {
 		if ( strstr( $page, 'metro-share' ) == -1 )
 			return;
 
@@ -47,20 +103,88 @@ class metro_share {
 		wp_enqueue_style( 'metroshare-admin-css', plugins_url( '/assets/metroshare-admin.css', __FILE__ ) );
 	}
 
-	function enqueue_frontend_scripts() {
+	/*
+	 * Load Javascript and CSS into frontend of site
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function enqueue_frontend_scripts() {
 		wp_enqueue_style( 'metroshare-css', plugins_url( '/assets/metroshare.css', __FILE__ ) );
 		wp_enqueue_script( 'metroshare', plugins_url( '/assets/metroshare.js', __FILE__ ), array( 'jquery' ), null, true );
 		// wp_localize_script( 'metroshare', 'metroshare', array( 'true' => true ) );
 	}
 
-	function register_admin_settings() {
-		register_setting( 'metroshare_settings', 'metroshare_settings' );
-		add_submenu_page( 'options-general.php', 'Metroshare Settings', 'Metroshare', 'administrator', __FILE__, array( $this, 'metroshare_settings_display' ) );
+	/*
+	 * Register admin page settings
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function register_admin_settings() {
+		register_setting(
+			'metroshare_settings',
+			'metroshare_settings',
+			array( $this, 'validate' )
+		);
+		add_submenu_page( 'options-general.php', __( 'Sharing Icon Settings', 'metroshare' ), __( 'Sharing Icons', 'metroshare' ), 'administrator', __FILE__, array( $this, 'settings_display' ) );
+	}
+	
+	/*
+	 * Sanitising each chunk of data submitted from the admin page
+	 *
+	 * @since 0.5
+	 * @author Ryan Hellyer <ryan@metronet.no>
+	 */
+	public function sanitise_chunk( $input ) {
+		$output = array();
+		if ( ! empty( $input['enabled'] ) )
+			$output['enabled']  = sanitize_title( $input['enabled'] );
+		if ( isset( $input['message'] ) )
+			$output['message']  = wp_kses( $input['message'], '', '' );
+		if ( isset( $input['username'] ) )
+			$output['username'] = sanitize_user( $input['username'] );
+		if ( isset( $input['app_id'] ) ) {
+			if ( is_numeric( $input['app_id'] ) ) {
+				$output['app_id'] = $input['app_id'];
+			} else {
+				$output['app_id'] = '';
+			}
+		}
+		return $output;
 	}
 
-	function load_settings() {
-		// Load user settings
-		$this->settings = get_option( 'metroshare_settings' );
+	/*
+	 * Validation/sanitisation of data inputted from admin page
+	 *
+	 * @since 0.5
+	 * @author Ryan Hellyer <ryan@metronet.no>
+	 */
+	public function validate( $input ) {
+
+		$output = array();
+		if ( isset( $input['prefix'] ) )
+			$output['prefix'] = wp_kses( $input['prefix'], '', '' );
+		if ( isset( $input['allposts'] ) )
+			$output['allposts'] = (bool) $input['allposts'];
+		else
+			$output['allposts'] = false;
+		$destinations = $input['destinations'];
+
+		foreach( $destinations as $destination => $value ) {
+			$output['destinations'][$destination] = $this->sanitise_chunk( $destinations[$destination] );
+		}
+
+		return $output;
+	}
+
+	/*
+	 * Load settings for admin pages
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function load_settings() {
 
 		$this->destinations['twitter'] = array(
 				'title' => 'Twitter',
@@ -69,7 +193,7 @@ class metro_share {
 					'message' => array( 
 						'type' => 'textarea',
 						'label' => __( 'Default message:', 'metroshare' ),
-						'help' => __( 'You can use the following tags: <code>{{title}}</code>, <code>{{link}}</code>.', 'metroshare' )
+						'help' => __( 'You can use the following tags: <code>{{title}}</code>, <code>{{link}}</code>, <code>{{post_title}}</code> and <code>{{shortlink}}</code>.', 'metroshare' )
 					),
 					'username' => array( 
 						'type' => 'text',
@@ -149,26 +273,67 @@ class metro_share {
 		
 	}
 
-	function show_sharing() {
+	/*
+	 * Primary function used for displaying share icon via the_content() filter
+	 *
+	 * @since 0.5
+	 * @author Ryan Hellyer <ryan@metronet.no>
+	 * @param string   $content  The post content
+	 * @global object  $post     The primary post object
+	 * @return string
+	 */
+	public function show_the_content( $content = '' ) {
 		global $post;
 
-		if ( empty( $this->settings ) || ! is_singular() )
-			return $content;
+		if ( is_singular() && $post->ID == get_queried_object_id() || $this->settings['allposts'] == true ) {
+			$icons = $this->get_sharing_icons();
+			$content .= $icons;
+		}
 
-		if ( ! in_array( get_post_type(), array( 'post', 'page' ) ) )
-			return $content;
+		// Finally, return the content
+		return $content;
+	}
 
+	/*
+	 * Primary function used for displaying share icon
+	 *
+	 * @since 0.5
+	 * @author Ryan Hellyer <ryan@metronet.no>
+	 */
+	public function show_sharing_icons() {
+		echo $this->get_sharing_icons();
+	}
+
+	/*
+	 * Generate the sharing icons HTML
+	 *
+	 * @since 0.5
+	 * @author Ryan Hellyer <ryan@metronet.no>
+	 * @return string or null
+	 */
+	public function get_sharing_icons() {
 		$items = array();
 		$tabs = array();
-		
+
+		// Process each potential sharing destination
 		foreach ( $this->settings['destinations'] as $d => $destination ) {
-			
-			$replace = array(
-				'{{title}}' => get_the_title(),
-				'{{post_title}}' => get_the_title(),
-				'{{link}}' => get_permalink(),
-				'{{shortlink}}' => wp_get_shortlink(),
-			);
+
+			if ( is_404() ) {
+				$replace = array(
+					'{{title}}'      => get_bloginfo( 'name' ),
+					'{{post_title}}' => get_bloginfo( 'description' ),
+					'{{link}}'       => home_url(),
+					'{{shortlink}}'  => home_url(),
+				);
+			} else {
+				$replace = array(
+					'{{title}}'      => get_the_title(),
+					'{{post_title}}' => get_the_title(),
+					'{{link}}'       => get_permalink(),
+					'{{shortlink}}'  => wp_get_shortlink(),
+				);
+			}
+			$replace = apply_filters( 'metroshare_tag', $replace );
 
 			// Add custom destination settings fields to the replace variables
 			if ( isset( $this->destinations[ $d ]['fields'] ) )
@@ -180,9 +345,12 @@ class metro_share {
 
 			// Append hidden fields to the form
 			if ( isset( $this->destinations[ $d ]['hidden'] ) )
-				foreach ( $this->destinations[ $d ]['hidden'] as $field_name => $field_value )
-					$hidden_fields[] = sprintf( '<input type="hidden" name="%s" value="%s" />', $field_name, strtr( $field_value, $replace ) );
+				foreach ( $this->destinations[ $d ]['hidden'] as $field_name => $field_value ) {
+					if ( ! empty( $field_value ) )
+						$hidden_fields[] = sprintf( '<input type="hidden" name="%s" value="%s" />', $field_name, strtr( $field_value, $replace ) );
+				}
 
+			// If sharing destination is enabled, then display list item and link
 			if ( isset( $destination['enabled'] ) )
 				$tabs[] = sprintf( 
 						'<li class="metroshare-%s"><a href="#destination-%s"><span class="icon"></span>%s</a></li>',  
@@ -191,6 +359,7 @@ class metro_share {
 						esc_html( $this->destinations[ $d ]['title'] )
 					);
 
+			// If sharing destination is enabled, then display form
 			if ( isset( $destination['enabled'] ) ) {
 				$items[] = sprintf( 
 						'<form id="destination-%s" class="destination-tab" action="%s" method="get">
@@ -203,24 +372,37 @@ class metro_share {
 			}
 		}
 
-		if ( ! empty( $items ) )
-			echo sprintf( 
+		// Generate final HTML and add it to the main post content
+		if ( ! empty( $items ) ) {
+			$share_html = sprintf( 
 					'<div class="metroshare">
 						<h4 class="share-prefix">%s</h4>
-						<ul class="tabs">%s</ul>
+						<ul class="metro-tabs">%s</ul>
 						%s
 					</div>',
 					esc_html( $this->settings['prefix'] ),
 					implode( '', $tabs ),
 					implode( '', $items ) 
 				);
+			return $share_html;
+		}
+
 	}
 
-	function metroshare_settings_display() {
+	/*
+	 * Displays the admin page settings content
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 */
+	public function settings_display() {
 		$network_settings = array();
 		$enabled_settings = array(); 
 
 		foreach ( $this->destinations as $n => $network ) {
+			if ( ! isset( $this->settings['destinations'][ $n ]['enabled'] ) ) {
+				$this->settings['destinations'][ $n ]['enabled'] = false;
+			}
 			$enabled_settings[ $n ] = sprintf( 
 					'<li>
 						<label>
@@ -248,9 +430,17 @@ class metro_share {
 
 		echo '<form action="options.php" method="post">';
 		settings_fields( 'metroshare_settings' );
+		echo '
+		<style type="text/css">
+		#icon-metronet {
+			background:url(' . plugins_url( '/assets/metronet-icon.png', __FILE__ ) . ') no-repeat;
+		}
+		</style>
+		<div class="wrap metroshare-wrap">';
+		screen_icon( 'metronet' );
 
 		printf( 
-				'<div class="wrap metroshare-wrap">
+				'
 					<h2>%s</h2>
 					
 					<table class="form-table metroshare-global">
@@ -258,6 +448,14 @@ class metro_share {
 							<th>%s</th>
 							<td>
 								<input class="regular-text" type="text" name="metroshare_settings[prefix]" value="%s" />
+							</td>
+						</tr>
+						<tr class="submit">
+							<th>%s</th>
+							<td>
+								<p>
+									<input type="checkbox" name="metroshare_settings[allposts]" value="1" %s />
+								</p>
 							</td>
 						</tr>
 						<tr class="metroshare-tabs">
@@ -286,9 +484,11 @@ class metro_share {
 						</tr>
 					</table>
 				</div>',
-				__( 'Metroshare Settings', 'metroshare' ),
+				__( 'Sharing Icon Settings', 'metroshare' ),
 				__( 'Invitation Text', 'metroshare' ),
 				esc_attr( $this->settings['prefix'] ),
+				'Display in <strong>all</strong> post areas?',
+				checked( $this->settings['allposts'], true, false ),
 				__( 'Sharing Destinations', 'metroshare' ),
 				__( 'Select which sharing destinations you want to enable and use drag and drop to change their order:', 'metroshare' ),
 				implode( '', $enabled_settings ),
@@ -301,7 +501,15 @@ class metro_share {
 		echo '</form>';
 	}
 
-	function network_settings_fields( $n ) {
+	/*
+	 * Adding fields to admin page
+	 *
+	 * @since 0.4
+	 * @author Kaspars Dambis <kaspars@metronet.no>
+	 * @todo Document @param here
+	 * @return array
+	 */
+	public function network_settings_fields( $n ) {
 		$fields = array();
 
 		$inputs = array(
@@ -343,4 +551,3 @@ class metro_share {
 	}
 
 }
-
